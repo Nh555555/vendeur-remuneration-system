@@ -26,8 +26,9 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 def init_db():
-    """Crée la base de données et la table sales si elles n'existent pas."""
+    """Crée la base et la table 'sales' si elles n'existent pas."""
     try:
+        print("🚀 Initialisation de la base de données...")
         with sqlite3.connect('sales.db') as conn:
             cursor = conn.cursor()
             cursor.execute('''
@@ -42,7 +43,7 @@ def init_db():
             conn.commit()
         print("✅ Base de données 'sales.db' et table 'sales' créées avec succès.")
     except Exception as e:
-        print(f"⚠️ Erreur lors de la création de la base : {e}")
+        print(f"❌ Erreur lors de la création de la base : {e}")
 
 users = {'admin': generate_password_hash('password123')}
 
@@ -56,13 +57,10 @@ def login():
         username = request.form['username']
         password = request.form['password']
         if username in users and check_password_hash(users[username], password):
-            # ✅ Bloc indenté correctement sous le if
             session['user'] = username
             return redirect(url_for('admin_dashboard'))
-        else:
-            return "Échec de la connexion"
+        return "Échec de la connexion"
     return render_template('login.html')
-
 
 @app.route('/admin')
 def admin_dashboard():
@@ -83,5 +81,5 @@ def logout():
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
-    init_db()  # ✅ Crée la base de données avant le démarrage
+    init_db()  # 🔥 Crée la base et la table avant le démarrage
     app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
