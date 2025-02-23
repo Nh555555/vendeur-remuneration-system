@@ -1,8 +1,11 @@
 import sqlite3
+import os
 
 def create_database():
+    db_path = os.path.abspath('sales.db')
+    print(f"📂 Chemin de la base : {db_path}")
     try:
-        conn = sqlite3.connect('sales.db')
+        conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sales (
@@ -17,7 +20,7 @@ def create_database():
         conn.close()
         print("✅ Base de données 'sales.db' et table 'sales' créées avec succès.")
     except Exception as e:
-        print(f"❌ Erreur lors de la création de la base : {e}")
+        print(f"❌ Erreur : {e}")
 
 if __name__ == "__main__":
     create_database()
