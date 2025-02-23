@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from PIL import Image
 import os
@@ -26,7 +27,6 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 def init_db():
-    """Crée la base de données et la table sales si elles n'existent pas."""
     try:
         db_path = os.path.abspath('sales.db')
         print(f"📂 Chemin de la base : {db_path}")
@@ -42,7 +42,7 @@ def init_db():
                 )
             ''')
             conn.commit()
-        print("✅ Base de données 'sales.db' et table 'sales' créées avec succès.")
+        print("✅ Base et table créées avec succès.")
     except Exception as e:
         print(f"❌ Erreur lors de la création de la base : {e}")
 
@@ -74,7 +74,7 @@ def admin_dashboard():
             sales = cursor.fetchall()
         return render_template('dashboard.html', sales=sales)
     except sqlite3.OperationalError as e:
-        return f"❌ Erreur : {e}. La base ou la table 'sales' est manquante."
+        return f"❌ Erreur : {e}. Table manquante."
 
 @app.route('/logout')
 def logout():
@@ -82,7 +82,7 @@ def logout():
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
-    print("🚀 Lancement de l'application...")
-    init_db()  # 🔥 Forcer la création de la base juste avant de démarrer le serveur
-    print("🟢 Serveur en cours d'exécution...")
+    print("🚀 Lancement...")
+    init_db()
+    print("🟢 Serveur démarré.")
     app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
