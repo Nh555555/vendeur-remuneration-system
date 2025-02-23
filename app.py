@@ -25,12 +25,18 @@ mail = Mail(app)
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+# 📂 CHEMIN DE BASE DYNAMIQUE
+DB_PATH = '/data/sales.db'
+DATA_FOLDER = '/data'
+
 def init_db():
     try:
-        db_path = '/data/sales.db'
-        if not os.path.exists('/data'):
-            os.makedirs('/data')
-        with sqlite3.connect(db_path) as conn:
+        if not os.path.exists(DATA_FOLDER):
+            os.makedirs(DATA_FOLDER)
+            print(f"📁 Dossier {DATA_FOLDER} créé avec succès.")
+        if not os.path.exists(DB_PATH):
+            print(f"📂 Création de la base : {DB_PATH}")
+        with sqlite3.connect(DB_PATH) as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS sales (
@@ -50,76 +56,14 @@ def init_db():
                 )
             ''')
             conn.commit()
+        print(f"✅ Base et tables créées dans {DB_PATH}.")
     except Exception as e:
-        print(f"❌ Erreur lors de la création de la base : {e}")
+        print(f"❌ Erreur création base : {e}")
 
 def create_default_seller():
-    db_path = '/data/sales.db'
-    with sqlite3.connect(db_path) as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM sellers WHERE username=?", ('vendeur',))
+        cursor.execute(\"SELECT * FROM sellers WHERE username=?\", ('vendeur',))
         if not cursor.fetchone():
-            cursor.execute("INSERT INTO sellers (username, password) VALUES (?, ?)",
-                           ('vendeur', generate_password_hash('vendeur123')))
-            conn.commit()
-        print("✅ Vendeur par défaut créé.")
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        db_path = '/data/sales.db'
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT password FROM sellers WHERE username=?", (username,))
-            seller = cursor.fetchone()
-            if seller and check_password_hash(seller[0], password):
-                session['seller'] = username
-                return redirect(url_for('seller_dashboard'))
-        return "Échec de la connexion"
-    return render_template('login.html')
-
-@app.route('/seller')
-def seller_dashboard():
-    if 'seller' not in session:
-        return redirect(url_for('login'))
-    db_path = '/data/sales.db'
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM sales WHERE seller=?', (session['seller'],))
-        sales = cursor.fetchall()
-    return render_template('seller_dashboard.html', sales=sales, seller=session['seller'])
-
-@app.route('/add_sale', methods=['GET', 'POST'])
-def add_sale():
-    if 'seller' not in session:
-        return redirect(url_for('login'))
-    if request.method == 'POST':
-        product = request.form['product']
-        total = float(request.form['total'])
-        commission = total * 0.05
-        db_path = '/data/sales.db'
-        with sqlite3.connect(db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute('INSERT INTO sales (product, total, commission, seller) VALUES (?, ?, ?, ?)',
-                           (product, total, commission, session['seller']))
-            conn.commit()
-        return redirect(url_for('seller_dashboard'))
-    return render_template('add_sale.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('seller', None)
-    return redirect(url_for('home'))
-
-if __name__ == '__main__':
-    print("🚀 Lancement de l'application...")
-    init_db()
-    create_default_seller()
-    print("🟢 Serveur en cours d'exécution.")
-    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
+            cursor.execute(\"INSERT INTO sellers (username, password) VALUES (?, ?)\",
+                           ('vendeur', generate_password_hash('vendeur123')))\n            conn.commit()\n        print(\"✅ Vendeur par défaut créé.\")\n\n@app.route('/')\ndef home():\n    return render_template('index.html')\n\n@app.route('/login', methods=['GET', 'POST'])\ndef login():\n    if request.method == 'POST':\n        username = request.form['username']\n        password = request.form['password']\n        with sqlite3.connect(DB_PATH) as conn:\n            cursor = conn.cursor()\n            cursor.execute(\"SELECT password FROM sellers WHERE username=?\", (username,))\n            seller = cursor.fetchone()\n            if seller and check_password_hash(seller[0], password):\n                session['seller'] = username\n                return redirect(url_for('seller_dashboard'))\n        return \"Échec de la connexion\"\n    return render_template('login.html')\n\n@app.route('/seller')\ndef seller_dashboard():\n    if 'seller' not in session:\n        return redirect(url_for('login'))\n    with sqlite3.connect(DB_PATH) as conn:\n        cursor = conn.cursor()\n        cursor.execute('SELECT * FROM sales WHERE seller=?', (session['seller'],))\n        sales = cursor.fetchall()\n    return render_template('seller_dashboard.html', sales=sales, seller=session['seller'])\n\n@app.route('/logout')\ndef logout():\n    session.pop('seller', None)\n    return redirect(url_for('home'))\n\nif __name__ == '__main__':\n    print(\"🚀 Lancement de l'application avec gestion avancée du dossier /data...\")\n    init_db()\n    create_default_seller()\n    print(\"🟢 Serveur opérationnel.\")\n    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)"}]}
