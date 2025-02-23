@@ -44,4 +44,45 @@ def init_db():
             conn.commit()
         print("✅ Base de données 'sales.db' et table 'sales' créées avec succès.")
     except Exception as e:
-       
+        print(f"❌ Erreur lors de la création de la base : {e}")
+
+users = {'admin': generate_password_hash('password123')}
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username in users and check_password_hash(users[username], password):
+            session['user'] = username
+            return redirect(url_for('admin_dashboard'))
+        return "Échec de la connexion"
+    return render_template('login.html')
+
+@app.route('/admin')
+def admin_dashboard():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    try:
+        with sqlite3.connect('sales.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM sales')
+            sales = cursor.fetchall()
+        return render_template('dashboard.html', sales=sales)
+    except sqlite3.OperationalError as e:
+        return f"❌ Erreur : {e}. La base ou la table 'sales' est manquante."
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    print("🚀 Lancement de l'application...")
+    init_db()  # 🔥 Forcer la création de la base juste avant de démarrer le serveur
+    print("🟢 Serveur en cours d'exécution...")
+    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
