@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord</title>
+</head>
+<body>
+    <h2>Tableau de bord des ventes</h2>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Produit</th>
+            <th>Total (€)</th>
+            <th>Commission (€)</th>
+            <th>Date</th>
+        </tr>
+        {% for sale in sales %}
+        <tr>
+            <td>{{ sale[0] }}</td>
+            <td>{{ sale[1] }}</td>
+            <td>{{ sale[2] }}</td>
+            <td>{{ sale[3] }}</td>
+            <td>{{ sale[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/logout">Déconnexion</a>
+</body>
+</html>
