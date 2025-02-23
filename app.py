@@ -56,3 +56,32 @@ def login():
         username = request.form['username']
         password = request.form['password']
         if username in users and check_password_hash(users[username], password):
+            # ✅ Bloc indenté correctement sous le if
+            session['user'] = username
+            return redirect(url_for('admin_dashboard'))
+        else:
+            return "Échec de la connexion"
+    return render_template('login.html')
+
+
+@app.route('/admin')
+def admin_dashboard():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    try:
+        with sqlite3.connect('sales.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM sales')
+            sales = cursor.fetchall()
+        return render_template('dashboard.html', sales=sales)
+    except sqlite3.OperationalError as e:
+        return f"❌ Erreur : {e}. La base ou la table 'sales' est manquante."
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    init_db()  # ✅ Crée la base de données avant le démarrage
+    app.run(host='0.0.0.0', port=8080, debug=True, threaded=True)
